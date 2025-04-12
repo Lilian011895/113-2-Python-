@@ -26,7 +26,7 @@
 
 ## 使用方法
 
-1. 安裝必要的套件：
+1. 安裝：
 ```bash
 pip install beautifulsoup4
 ```
@@ -46,6 +46,4 @@ python professor_scraper.py
 3. 講師頁面 (`senior_lecturer`)
 4. 教授頁面 (`all_professors_1`)
 
-## 作者
 
-- [Lilian Chen]
