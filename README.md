@@ -61,3 +61,79 @@ python professor_scraper.py
 
 # 程式介紹
 
+### 1. 導入模組
+```python
+from urllib.request import Request, urlopen
+from bs4 import BeautifulSoup
+import re
+```
+
+`urllib.request`：發送網頁請求。
+
+`BeautifulSoup`：解析 HTML。
+
+`re`：用來做正規表達式比對（文字資料提取用）。
+
+### 2.定義主爬蟲函式
+`scrape_professors_expertise(...)`
+這個函式會從給定的教授頁面開始爬資料，最多抓 5 頁，流程如下：
+
+**1. 設定 headers（模擬瀏覽器）**
+```python
+headers = {'User-Agent': 'Mozilla/5.0 ...'}
+```
+防止網站阻擋爬蟲。
+
+**2.用迴圈抓每一頁資料**
+```python
+for page in range(1, max_pages + 1):
+```
+如果是第 1 頁，就直接用原始網址。
+如果是第 2 頁以後，網址加上 `?page_no=2` 等參數。
+
+**3.發送請求、解析 HTML**
+```python
+req = Request(current_url, headers=headers)
+html = urlopen(req)
+soup = BeautifulSoup(html, 'html.parser')
+text = soup.get_text()
+```
+這裡用來取得整個頁面的純文字。
+
+**4. 用正規表達式提取資料**
+```python
+pattern = r'姓名[\s\:：]+([\w\(\)\-\,\. ]+)\s*\n+\s*職稱[\s\:：]+([^\n]+)\s*\n+[\s\S]*?研究領域[\s\:：]+([\s\S]*?)(?=\s*Office hour|網站|分機)'
+matches = re.findall(pattern, text)
+```
+很重要的一部分：比對「姓名」、「職稱」和「研究領域」這些內容。
+
+**5.資料清理 & 加入清單**
+```python
+expertise = expertise.replace(', ', '、').replace('，', '、')
+```
+把中英文逗號等格式轉成統一的「、」，然後存進 `all_professors` 清單中。
+
+**6.處理特殊案例**
+```python
+special_cases = [
+    {"姓名": "Tadao Murata", "專長": "..."},
+    ...
+]
+```
+有些教授網頁可能抓不到，從這裡硬編寫進來（補資料用）。
+
+**7.儲存檔案**
+`save_simple_output(...)`
+```python
+def save_simple_output(professors_data, filename="professors_expertise_simple.txt"):
+```
+這個函式把抓到的資料儲存成純文字檔，每行輸出一位教授。
+
+**8.主程式**
+`main()`
+```python
+def main():
+```
+這裡抓了副教授、助理教授、講師、教授的資料，組成總表，再刪除重複的教授（用姓名判斷），最後儲存。
+
+
