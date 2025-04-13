@@ -8,13 +8,11 @@
 
 - [亞洲大學資工系教授專業領域爬蟲](#亞洲大學資工系教授專業領域爬蟲)
   - [功能特點](#功能特點)
-  - [使用技術](#使用技術)
+  - [使用](#使用)
     - [網頁爬蟲技術](#網頁爬蟲技術)
     - [網頁解析](#網頁解析)
     - [資料處理](#資料處理)
-  - [使用方法](#使用方法)
-  - [爬取對象](#爬取對象)
-    
+  - [使用方法](#使用方法)    
 - [程式介紹](#程式介紹)
 
 ### 功能特點
@@ -25,39 +23,32 @@
 - 資料整合與清理
 - 將結果保存為易讀的文字檔案
 
-### 使用技術
+### 使用
 
-- **網頁爬蟲技術**：
-  - `urllib.request` - 發送HTTP請求
-  - User-Agent模擬 - 避免被網站封鎖
-- **網頁解析**：
-  - `BeautifulSoup4` - HTML解析
-- **資料處理**：
-  - 正則表達式 (`re`) - 結構化資料提取
-  - 字串處理與資料清理
-  - 避免資料重複
+
+1.程式會自動爬取以下頁面的教授資料：
+
+副教授：https://csie.asia.edu.tw/zh_tw/associate_professors_2
+
+助理教授：https://csie.asia.edu.tw/zh_tw/assistant_professors_2
+
+講師：https://csie.asia.edu.tw/zh_tw/senior_lecturer
+
+教授：https://csie.asia.edu.tw/zh_tw/all_professors_1
+
+
+2.爬取完成後，會將所有教授的資料（姓名和專長）保存到當前目錄下的professors_expertise_simple.txt檔案中
+
+3.如果在Colab中執行，程式會自動提供檔案下載選項
 
 ### 使用方法
 
-1. 安裝：
-```bash
-pip install beautifulsoup4
-```
-
-2. 執行程式：
+1.  執行程式：
 ```bash
 python professor_scraper.py
 ```
 
-3. 查看結果，程式將生成 `professors_expertise_simple.txt` 檔案，包含所有教授的姓名與專長。
-
-### 爬取對象
-
-本爬蟲抓取亞洲大學資工系的以下頁面：
-1. 副教授頁面 (`associate_professors_2`)
-2. 助理教授頁面 (`assistant_professors_2`)
-3. 講師頁面 (`senior_lecturer`)
-4. 教授頁面 (`all_professors_1`)
+2. 查看結果，程式將生成 `professors_expertise_simple.txt` 檔案，包含所有教授的姓名與專長。
 
 # 程式介紹
 
@@ -74,62 +65,38 @@ import re
 
 `re`：用來做正規表達式比對（文字資料提取用）。
 
-### 2.定義主爬蟲函式
-`scrape_professors_expertise(...)`
-這個函式會從給定的教授頁面開始爬資料，最多抓 5 頁，流程如下：
-
-**1. 設定 headers（模擬瀏覽器）**
+### 2.爬蟲函數 `scrape_professors_expertise`
 ```python
-headers = {'User-Agent': 'Mozilla/5.0 ...'}
+def scrape_professors_expertise(base_url="https://csie.asia.edu.tw/zh_tw/associate_professors_2", max_pages=5, add_special_cases=False):
 ```
-防止網站阻擋爬蟲。
+這個函數的功能：
 
-**2.用迴圈抓每一頁資料**
-```python
-for page in range(1, max_pages + 1):
-```
-如果是第 1 頁，就直接用原始網址。
-如果是第 2 頁以後，網址加上 `?page_no=2` 等參數。
+  1.接收基礎URL和最大頁數參數
 
-**3.發送請求、解析 HTML**
-```python
-req = Request(current_url, headers=headers)
-html = urlopen(req)
-soup = BeautifulSoup(html, 'html.parser')
-text = soup.get_text()
-```
-這裡用來取得整個頁面的純文字。
+  2.設定User-Agent標頭以模擬瀏覽器請求
 
-**4. 用正規表達式提取資料**
-```python
-pattern = r'姓名[\s\:：]+([\w\(\)\-\,\. ]+)\s*\n+\s*職稱[\s\:：]+([^\n]+)\s*\n+[\s\S]*?研究領域[\s\:：]+([\s\S]*?)(?=\s*Office hour|網站|分機)'
-matches = re.findall(pattern, text)
-```
-很重要的一部分：比對「姓名」、「職稱」和「研究領域」這些內容。
+  3.逐頁爬取教授資料
 
-**5.資料清理 & 加入清單**
-```python
-expertise = expertise.replace(', ', '、').replace('，', '、')
-```
-把中英文逗號等格式轉成統一的「、」，然後存進 `all_professors` 清單中。
+  4.使用正規表示式從網頁文字中提取教授姓名和專長
 
-**6.處理特殊案例**
-```python
-special_cases = [
-    {"姓名": "Tadao Murata", "專長": "..."},
-    ...
-]
-```
-有些教授網頁可能抓不到，從這裡硬編寫進來（補資料用）。
+  5.如果 add_special_cases=True，還會加入手動輸入的特殊案例
 
-**7.儲存檔案**
-`save_simple_output(...)`
+  6.返回包含所有教授資料的列表
+
+### 3.簡單輸出函數
 ```python
 def save_simple_output(professors_data, filename="professors_expertise_simple.txt"):
 ```
-這個函式把抓到的資料儲存成純文字檔，每行輸出一位教授。
+這個函數將爬取的教授資料保存為簡單的文字檔案，每行包含一位教授的姓名和專長。
 
-**8.主程式**
+
+### 4.檔案保存函數
+```python
+pythondef save_to_file(data_list, filename="output.txt"):
+```
+一個通用的檔案保存函數，用於將列表資料寫入檔案。
+    
+### 5.主程式
 `main()`
 ```python
 def main():
