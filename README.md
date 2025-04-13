@@ -1,4 +1,4 @@
-# 113-2 期中 Web Scrapying
+# 113-2 期中 Web Scraping
 
 ### 亞洲大學資工系教授專業領域爬蟲
 
